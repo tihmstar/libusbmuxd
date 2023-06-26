@@ -324,6 +324,13 @@ void libusbmuxd_set_use_inotify(int set);
 
 void libusbmuxd_set_debug_level(int level);
 
+/**
+ * Set a callback function to be called every time someone asks for a device pairing record.
+ * If callback function returns 0, successfull "spoofing" is assumed
+ * If callback functions returns non-zero, usbmuxd is asked for the pairing record as usual.
+ */
+void libusbmuxd_set_pairing_record_spoof_callback(int (*callback)(const char *udid, char **record_data, uint32_t *record_size));
+
 #ifdef __cplusplus
 }
 #endif

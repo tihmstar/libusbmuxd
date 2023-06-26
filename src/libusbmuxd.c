@@ -110,6 +110,7 @@ static char *prog_name = NULL;
 #include <libimobiledevice-glue/thread.h>
 
 static int libusbmuxd_debug = 0;
+static int (*gPairingCallback)(const char *udid, char **record_data, uint32_t *record_size) = NULL;
 #ifndef PACKAGE
 #define PACKAGE "libusbmuxd"
 #endif
@@ -1675,6 +1676,10 @@ USBMUXD_API int usbmuxd_read_pair_record(const char* record_id, char **record_da
 	*record_data = NULL;
 	*record_size = 0;
 
+  if (gPairingCallback && gPairingCallback(record_id, record_data, record_size) == 0){
+    return 0;
+  }
+
 	sfd = connect_usbmuxd_socket();
 	if (sfd < 0) {
 		LIBUSBMUXD_DEBUG(1, "%s: Error: Connection to usbmuxd failed: %s\n", __func__, strerror(-sfd));
@@ -1800,4 +1805,8 @@ USBMUXD_API void libusbmuxd_set_debug_level(int level)
 {
 	libusbmuxd_debug = level;
 	socket_set_verbose(level);
+}
+
+USBMUXD_API void libusbmuxd_set_pairing_record_spoof_callback(int (*callback)(const char *udid, char **record_data, uint32_t *record_size)){
+  gPairingCallback = callback;
 }
