@@ -49,6 +49,8 @@
 #define ECONNREFUSED 107
 #endif
 
+#define DEFAULT_TIMEOUT 15000
+
 #include <unistd.h>
 #include <signal.h>
 
@@ -363,7 +365,7 @@ static int receive_packet(int sfd, struct usbmuxd_header *header, void **payload
 		payload_loc = (char*)malloc(payload_size);
 		uint32_t rsize = 0;
 		do {
-			int res = socket_receive_timeout(sfd, payload_loc + rsize, payload_size - rsize, 0, 5000);
+			int res = socket_receive_timeout(sfd, payload_loc + rsize, payload_size - rsize, 0, DEFAULT_TIMEOUT);
 			if (res < 0) {
 				break;
 			}
@@ -496,7 +498,7 @@ static int usbmuxd_get_result(int sfd, uint32_t tag, uint32_t *result, void **re
 		*result_plist = NULL;
 	}
 
-	recv_len = receive_packet(sfd, &hdr, (void**)&res, 5000);
+	recv_len = receive_packet(sfd, &hdr, (void**)&res, DEFAULT_TIMEOUT);
 	if (recv_len < 0 || (size_t)recv_len < sizeof(hdr)) {
 		free(res);
 		return (recv_len < 0 ? recv_len : -EPROTO);
@@ -1620,7 +1622,7 @@ USBMUXD_API int usbmuxd_recv_timeout(int sfd, char *data, uint32_t len, uint32_t
 
 USBMUXD_API int usbmuxd_recv(int sfd, char *data, uint32_t len, uint32_t *recv_bytes)
 {
-	return usbmuxd_recv_timeout(sfd, data, len, recv_bytes, 5000);
+	return usbmuxd_recv_timeout(sfd, data, len, recv_bytes, DEFAULT_TIMEOUT);
 }
 
 USBMUXD_API int usbmuxd_read_buid(char **buid)
