@@ -15,7 +15,7 @@ dnl libtool versioning
 #                 changes to the signature and the semantic)
 #  ? :+1 : ?   == just internal changes
 # CURRENT : REVISION : AGE
-LIBUSBMUXD_SO_VERSION=6:0:0
+LIBUSBMUXD_SO_VERSION=7:0:0
 
 AC_SUBST(LIBUSBMUXD_SO_VERSION)
 
@@ -26,7 +26,7 @@ fi
 
 dnl Minimum package versions
 LIBPLIST_VERSION=2.2.0
-LIMD_GLUE_VERSION=1.0.0
+LIMD_GLUE_VERSION=1.2.0
 
 AC_SUBST(LIBPLIST_VERSION)
 AC_SUBST(LIMD_GLUE_VERSION)
@@ -117,13 +117,13 @@ AM_CONDITIONAL(WIN32, test x$win32 = xtrue)
 
 AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wmissing-declarations -Wredundant-decls -Wshadow -Wpointer-arith -Wwrite-strings -Wswitch-default -Wno-unused-parameter -fvisibility=hidden $PTHREAD_CFLAGS")
 GLOBAL_LDFLAGS="$PTHREAD_LIBS"
+
+if test "x$enable_static" = "xyes" -a "x$enable_shared" = "xno"; then
+  GLOBAL_CFLAGS+=" -DLIBUSBMUXD_STATIC"
+fi
+
 AC_SUBST(GLOBAL_CFLAGS)
 AC_SUBST(GLOBAL_LDFLAGS)
-
-case "$GLOBAL_CFLAGS" in
-    *-fvisibility=hidden*)
-        AC_DEFINE([HAVE_FVISIBILITY], [1], [Define if compiled with -fvisibility=hidden])
-esac
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 

@@ -29,10 +29,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef WIN32
+#ifdef LIBUSBMUXD_STATIC
+  #define USBMUXD_API
+#elif defined(_WIN32)
   #define USBMUXD_API __declspec( dllexport )
 #else
-  #ifdef HAVE_FVISIBILITY
+  #if __GNUC__ >= 4
     #define USBMUXD_API __attribute__((visibility("default")))
   #else
     #define USBMUXD_API
@@ -917,7 +919,7 @@ static int usbmuxd_listen_inotify()
 		return sfd;
 
 	sfd = -1;
-	inot_fd = inotify_init ();
+	inot_fd = inotify_init1(IN_CLOEXEC);
 	if (inot_fd < 0) {
 		LIBUSBMUXD_DEBUG(1, "%s: Failed to setup inotify\n", __func__);
 		return -2;
@@ -1593,9 +1595,8 @@ USBMUXD_API int usbmuxd_send(int sfd, const char *data, uint32_t len, uint32_t *
 	num_sent = socket_send(sfd, (void*)data, len);
 	if (num_sent < 0) {
 		*sent_bytes = 0;
-		num_sent = errno;
-		LIBUSBMUXD_DEBUG(1, "%s: Error %d when sending: %s\n", __func__, num_sent, strerror(num_sent));
-		return -num_sent;
+		LIBUSBMUXD_DEBUG(1, "%s: Error %d when sending: %s\n", __func__, -num_sent, strerror(-num_sent));
+		return num_sent;
 	}
 
 	if ((uint32_t)num_sent < len) {
@@ -1807,6 +1808,14 @@ USBMUXD_API void libusbmuxd_set_debug_level(int level)
 {
 	libusbmuxd_debug = level;
 	socket_set_verbose(level);
+}
+
+USBMUXD_API const char* libusbmuxd_version()
+{
+#ifndef PACKAGE_VERSION
+#error PACKAGE_VERSION is not defined
+#endif
+	return PACKAGE_VERSION;
 }
 
 USBMUXD_API void libusbmuxd_set_pairing_record_spoof_callback(int (*callback)(const char *udid, char **record_data, uint32_t *record_size)){
